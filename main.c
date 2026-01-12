@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
       write_to_grid(true, mx / GRID_FACTOR, my / GRID_FACTOR);
       for (int y = -1; y < 1; ++y) {
         for (int x = -1; x < 1; ++x) {
-          if (x > GRID_WIDTH || x < 0 || y > GRID_HEIGHT || y < 0)
+          if (!is_inbounds(x, y))
             continue;
           write_to_grid(true, (mx / GRID_FACTOR) + x, (my / GRID_FACTOR + y));
         }
@@ -213,7 +213,7 @@ void render_ui(SDL_Surface *surface) {
   SDL_GetMouseState(&mx, &my);
   for (int y = -1; y < 1; ++y) {
     for (int x = -1; x < 1; ++x) {
-      if (x > GRID_WIDTH || x < 0 || y > GRID_HEIGHT || y < 0)
+      if (!is_inbounds(x, y))
         continue;
       write_surface_pixel(surface, (mx / GRID_FACTOR) + x,
                           (my / GRID_FACTOR + y), 255, 255, 255, 100);
