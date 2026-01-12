@@ -345,7 +345,7 @@ void init_font() {
 }
 
 void deinit_font() {
-  for (int i = 0; i < 255; ++i) {
+  for (int i = 0; i < CHARACTER_COUNT; ++i) {
     character_t *character = font_characters[i];
     if (!character)
       continue;
