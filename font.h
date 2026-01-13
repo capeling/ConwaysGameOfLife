@@ -1,6 +1,12 @@
 #ifndef __FONT_H__
 #define __FONT_H__
 
+#include <SDL3/SDL.h>
+
+void font_init();
+void font_destroy();
+void font_render_text(SDL_Surface *surface, const char *text, int x, int y, int size);
+
 typedef struct character {
   int x;
   int y;
