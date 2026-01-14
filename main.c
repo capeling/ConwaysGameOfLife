@@ -1,3 +1,5 @@
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_timer.h>
 #include <stdio.h>
 
 #include <SDL3/SDL.h>
@@ -7,10 +9,13 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-#define GRID_FACTOR 6
+#define GRID_FACTOR 8
 
 #define GRID_WIDTH SCREEN_WIDTH / GRID_FACTOR
 #define GRID_HEIGHT SCREEN_HEIGHT / GRID_FACTOR
+
+#define FPS_LIMIT 60
+#define PHYSICS_LIMIT 15
 
 static bool grid[(int)GRID_WIDTH][(int)GRID_HEIGHT] = {0};
 static bool next_grid[(int)GRID_WIDTH][(int)GRID_HEIGHT] = {0};
@@ -60,7 +65,12 @@ int main(int argc, char **argv) {
 
   font_init();
 
+  double now = SDL_GetTicks();
+  double last = SDL_GetTicks();
+  double wait = 1000.0 / PHYSICS_LIMIT;
   while (running) {
+    last = now;
+    now = SDL_GetTicks();
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       switch (e.type) {
@@ -121,7 +131,8 @@ int main(int argc, char **argv) {
         }
       }
     }
-    if (tick) {
+    wait += now - last;
+    if (tick && wait > 1000.0 / PHYSICS_LIMIT) {
       for (int y = GRID_HEIGHT; y >= 0; --y) {
         for (int x = 0; x < GRID_WIDTH; ++x) {
           bool alive = grid[x][y];
@@ -156,6 +167,7 @@ int main(int argc, char **argv) {
           }
         }
       }
+      wait = 0.0;
     }
 
     memcpy(grid, next_grid, sizeof(grid));
@@ -174,7 +186,7 @@ int main(int argc, char **argv) {
 
     SDL_RenderPresent(renderer);
 
-    SDL_Delay(1000 / 60);
+    SDL_Delay(1000 / FPS_LIMIT);
   }
 
   font_destroy();
