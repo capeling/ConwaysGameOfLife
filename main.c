@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
       }
     }
     if (tick) {
-      for (int y = GRID_HEIGHT; y > 0; --y) {
+      for (int y = GRID_HEIGHT; y >= 0; --y) {
         for (int x = 0; x < GRID_WIDTH; ++x) {
           bool alive = grid[x][y];
           bool neighbors[] = {is_alive(x + 1, y),     is_alive(x - 1, y),
