@@ -1,6 +1,5 @@
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_timer.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <SDL3/SDL.h>
 
@@ -9,7 +8,7 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-#define GRID_FACTOR 8
+#define GRID_FACTOR 4
 
 #define GRID_WIDTH SCREEN_WIDTH / GRID_FACTOR
 #define GRID_HEIGHT SCREEN_HEIGHT / GRID_FACTOR
@@ -25,6 +24,8 @@ static bool tick = false;
 static bool lmbd = false;
 static bool rmbd = false;
 
+static int brush_size = 2;
+
 bool is_alive(int x, int y);
 bool write_to_grid(bool v, int x, int y);
 bool is_inbounds(int x, int y);
@@ -32,7 +33,7 @@ bool is_inbounds(int x, int y);
 void render_grid(SDL_Surface *surface);
 void render_ui(SDL_Surface *surface);
 
-int main(int argc, char **argv) {
+int main() {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     printf("Failed to initialize SDL: %s\n", SDL_GetError());
     return 1;
@@ -100,6 +101,16 @@ int main(int argc, char **argv) {
         else if (e.button.button == 3)
           rmbd = false;
         break;
+
+      case SDL_EVENT_MOUSE_WHEEL:
+        if (e.wheel.y > 0)
+          brush_size += 1;
+
+        if (e.wheel.y < 0)
+          brush_size -= 1;
+        
+        brush_size = fmin(5, fmax(1, brush_size));
+        break;
       }
     }
 
@@ -110,8 +121,8 @@ int main(int argc, char **argv) {
     SDL_GetMouseState(&mx, &my);
     if (lmbd) {
       write_to_grid(true, mx / GRID_FACTOR, my / GRID_FACTOR);
-      for (int y = -1; y < 1; ++y) {
-        for (int x = -1; x < 1; ++x) {
+      for (int y = -brush_size; y < brush_size; ++y) {
+        for (int x = -brush_size; x < brush_size; ++x) {
           float mgx = mx / GRID_FACTOR + x;
           float mgy = my / GRID_FACTOR + y;
           if (!is_inbounds(mgx, mgy))
@@ -121,8 +132,8 @@ int main(int argc, char **argv) {
       }
 
     } else if (rmbd) {
-      for (int y = -1; y < 1; ++y) {
-        for (int x = -1; x < 1; ++x) {
+      for (int y = -brush_size; y < brush_size; ++y) {
+        for (int x = -brush_size; x < brush_size; ++x) {
           float mgx = mx / GRID_FACTOR + x;
           float mgy = my / GRID_FACTOR + y;
           if (!is_inbounds(mgx, mgy))
@@ -214,8 +225,8 @@ void render_ui(SDL_Surface *surface) {
   SDL_ClearSurface(surface, 0, 0, 0, 0);
   float mx, my;
   SDL_GetMouseState(&mx, &my);
-  for (int y = -1; y < 1; ++y) {
-    for (int x = -1; x < 1; ++x) {
+  for (int y = -brush_size; y < brush_size; ++y) {
+    for (int x = -brush_size; x < brush_size; ++x) {
       float mgx = mx / GRID_FACTOR + x;
       float mgy = my / GRID_FACTOR + y;
       if (!is_inbounds(mgx, mgy))
@@ -225,7 +236,11 @@ void render_ui(SDL_Surface *surface) {
     }
   }
   if (!tick)
-    font_render_text(surface, "Paused", 3, 3, 1);
+    font_render_text(surface, "\nPaused", 3, 3, 1);
+
+  char* string;
+  SDL_asprintf(&string, "Brush Size: %d", brush_size);
+  font_render_text(surface, string, 3, 3, 1);
 }
 
 void render_grid(SDL_Surface *surface) {
@@ -239,7 +254,6 @@ void render_grid(SDL_Surface *surface) {
 
 bool is_alive(int x, int y) {
   if (!is_inbounds(x, y)) {
-    //printf("%d, %d\n", x, y);
     return false;
   }
 
